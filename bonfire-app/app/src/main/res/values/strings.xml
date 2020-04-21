@@ -5,6 +5,8 @@
     <string name="phone_hint">Enter Phone Number</string>
     <string name="signin_button_txt">Sign In</string>
     <string name="default_error_msg">Error Message</string>
+    <string name="sms_code">SMS Verification code</string>
+    <string name="verify">Verify</string>
 
     <!-- PROMPTS-->
     <string name="input_all_fields">Please input data in all fields</string>

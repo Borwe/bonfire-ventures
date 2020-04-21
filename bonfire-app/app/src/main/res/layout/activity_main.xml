@@ -9,6 +9,32 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/verify_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5sp"
+            android:autofillHints="@string/sms_code"
+            android:ems="10"
+            android:hint="@string/sms_code"
+            android:inputType="numberSigned"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/verify_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5sp"
+            android:layout_weight="1"
+            android:text="@string/verify"
+            android:visibility="gone" />
+    </LinearLayout>
+
     <EditText
         android:id="@+id/user_name_editText"
         android:layout_width="match_parent"
@@ -59,4 +85,5 @@
         android:layout_width="match_parent"
         android:visibility="gone"
         android:layout_height="match_parent" />
+
 </LinearLayout>

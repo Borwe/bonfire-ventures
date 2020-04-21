@@ -1,10 +1,10 @@
 package com.borwe.bonfireadventures;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
@@ -12,15 +12,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.borwe.bonfireadventures.user.UserDataProfile;
 import com.borwe.bonfireadventures.viewActions.ViewAction;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthProvider;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -28,7 +33,6 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
@@ -37,12 +41,15 @@ public class MainActivity extends AppCompatActivity {
 
     //Views
     Button signInButton;
+    Button verifyButton;
     EditText nameEditText;
     EditText phoneNumberEditText;
+    EditText smsCode;
     TextView errorMessageTextView;
     ProgressBar loadingBar;
 
     ViewAction<Button> signInButtonViewSetup;
+    ViewAction<Button> verifyButtonSetup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +67,12 @@ public class MainActivity extends AppCompatActivity {
         signInButton=findViewById(R.id.signInButton);
         errorMessageTextView=findViewById(R.id.error_message);
         loadingBar=findViewById(R.id.loadingBar);
+        smsCode=findViewById(R.id.verify_phone);
+        verifyButton=findViewById(R.id.verify_button);
 
         //setup view Action
         signInButtonViewSetup=new ViewAction<>(signInButton,false);
+        verifyButtonSetup=new ViewAction<>(verifyButton,false);
 
         setupSignInButtonActions();
     }
@@ -73,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
         phoneNumberEditText.setVisibility(View.GONE);
         signInButton.setVisibility(View.GONE);
         errorMessageTextView.setVisibility(View.GONE);
+        smsCode.setVisibility(View.GONE);
+        verifyButton.setVisibility(View.GONE);
     }
 
     private void showInputViewsAndHideLoading(){
@@ -81,11 +93,20 @@ public class MainActivity extends AppCompatActivity {
         phoneNumberEditText.setVisibility(View.VISIBLE);
         signInButton.setVisibility(View.VISIBLE);
         loadingBar.setVisibility(View.GONE);
+        smsCode.setVisibility(View.GONE);
+        verifyButton.setVisibility(View.GONE);
     }
 
     private void hideEverythingAndShowMainLoadingProgress(){
         hideInputViews();
         loadingBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideEverythingButShowSMSCode(){
+        hideInputViews();
+        loadingBar.setVisibility(View.GONE);
+        smsCode.setVisibility(View.VISIBLE);
+        verifyButton.setVisibility(View.VISIBLE);
     }
 
     private Single<Boolean> checkInputValuesAreValid(){
@@ -150,6 +171,40 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private PhoneAuthProvider.OnVerificationStateChangedCallbacks generatePhoneAuthCallbak(){
+        PhoneAuthProvider.OnVerificationStateChangedCallbacks callback=
+                new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    @Override
+                    public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
+                        //meaning code was sent and read succesfully
+                        //automatically or manually
+                        //then go ahead and do a firbase signin
+                    }
+
+                    @Override
+                    public void onVerificationFailed(@NonNull FirebaseException e) {
+
+                        //if invalid phone number format is passed
+                        if(e instanceof FirebaseAuthInvalidCredentialsException){
+                            //display warnning message about bad phone number
+                            //input
+
+                        }else if(e instanceof FirebaseTooManyRequestsException){
+                            //display error message that user exceeded limit
+                        }else{
+                            //display error message that something unknown went wrong
+                        }
+                    }
+
+                    @Override
+                    public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
+                        super.onCodeSent(s, forceResendingToken);
+                        MainActivity.this.hideEverythingButShowSMSCode();
+                    }
+                };
+        return callback;
+    }
+
     private void setupSignInButtonActions(){
         signInButtonViewSetup.setOnClickListerner(new View.OnClickListener() {
             @Override
@@ -178,14 +233,30 @@ public class MainActivity extends AppCompatActivity {
                             return getValuesInputByKeyMap().toObservable();
                         }
                     })
-                    .map(new Function<Map<String,String>, Boolean>() {
+                    .map(new Function<Map<String,String>, UserDataProfile>() {
                         @Override
-                        public Boolean apply(Map<String, String> stringStringMap) throws Exception {
+                        public UserDataProfile apply(Map<String, String> stringStringMap) throws Exception {
                             //turn the values into a json object, save it on shared preferences
-                            for(String keys:stringStringMap.keySet()){
-                                Log.d("keys_"+keys,stringStringMap.get(keys));
-                            }
-                            return false;
+                            UserDataProfile userDataProfile=new UserDataProfile();
+                            userDataProfile
+                                    .setUser_name(stringStringMap
+                                            .get(MainActivity.this.getString(R.string.name_hint)));
+                            userDataProfile.
+                                    setUser_phone(stringStringMap
+                                            .get(MainActivity.this.getString(R.string.phone_hint)));
+
+                            Log.d("name:",userDataProfile.getUser_name());
+                            Log.d("phone:",userDataProfile.getUser_phone());
+                            return userDataProfile;
+                        }
+                    }).map(new Function<UserDataProfile, UserDataProfile>() {
+                        @Override
+                        public UserDataProfile apply(UserDataProfile userDataProfile) throws Exception {
+                            //do the logging in here
+                            PhoneAuthProvider.getInstance().verifyPhoneNumber(userDataProfile.getUser_phone(),
+                                    60, TimeUnit.SECONDS,MainActivity.this
+                                    ,MainActivity.this.generatePhoneAuthCallbak());
+                            return userDataProfile;
                         }
                     })
                     .observeOn(AndroidSchedulers.mainThread()).doFinally(new Action() {
