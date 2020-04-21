@@ -5,4 +5,11 @@
     <string name="phone_hint">Enter Phone Number</string>
     <string name="signin_button_txt">Sign In</string>
     <string name="default_error_msg">Error Message</string>
+
+    <!-- PROMPTS-->
+    <string name="input_all_fields">Please input data in all fields</string>
+    <string name="error_occured">Error occurred</string>
+
+    <!-- UNIVERSAL -->
+    <string name="ok">Okay</string>
 </resources>

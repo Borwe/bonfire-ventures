@@ -1,5 +1,6 @@
 package com.borwe.bonfireadventures;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -102,7 +103,21 @@ public class MainActivity extends AppCompatActivity {
             public Boolean apply(Long aLong) throws Exception {
                 return aLong>0;
             }
-        });
+        }).observeOn(AndroidSchedulers.mainThread()).map(new Function<Boolean, Boolean>() {
+            @Override
+            public Boolean apply(Boolean aBoolean) throws Exception {
+                if(aBoolean==false){
+                    //show error message prompting user to input all fields with data
+                    AlertDialog alertDialog=new AlertDialog.Builder(MainActivity.this)
+                            .setTitle(MainActivity.this.getString(R.string.error_occured))
+                            .setMessage(MainActivity.this.getString(R.string.input_all_fields))
+                            .setPositiveButton(MainActivity.this.getString(R.string.ok),null)
+                            .create();
+                    alertDialog.show();
+                }
+                return aBoolean;
+            }
+        }).observeOn(Schedulers.computation());
     }
 
     private List<Pair<String,String>> getInputValuesAsLIst() {
