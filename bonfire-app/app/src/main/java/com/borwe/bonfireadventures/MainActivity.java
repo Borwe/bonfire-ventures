@@ -17,6 +17,7 @@ import com.borwe.bonfireadventures.user.UserDataProfile;
 import com.borwe.bonfireadventures.viewActions.ViewAction;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
@@ -56,7 +57,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        checkIfUserSignedIn();
+
         setupViews();
+    }
+
+    /**
+     * @return true, if signed in, false if not
+     */
+    private boolean checkIfUserSignedIn(){
+        FirebaseAuth auth=FirebaseAuth.getInstance();
+        if(auth.getCurrentUser() ==null){
+            Log.d("LOGGED_IN:","NOPE");
+            return false;
+        }
+        return true;
     }
 
     private void setupViews(){
