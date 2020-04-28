@@ -81,7 +81,7 @@ public class ViewAction <T extends View> {
 
     /**
      * check if action started or not
-     * @return
+     * @return true if started, false if not
      */
     public boolean isStarted(){
         if(actionStarted.get()){

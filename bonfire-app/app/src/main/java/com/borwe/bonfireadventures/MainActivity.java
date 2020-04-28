@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -13,10 +14,14 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.borwe.bonfireadventures.dialogs.PromptGenerator;
 import com.borwe.bonfireadventures.user.UserDataProfile;
 import com.borwe.bonfireadventures.viewActions.ViewAction;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.PhoneAuthCredential;
@@ -57,7 +62,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        checkIfUserSignedIn();
+        if(checkIfUserSignedIn()){
+            //if user logged in, then move to real activity
+        }
+        //otherwise user didn't login, keep on witht his activity
 
         setupViews();
     }
@@ -186,6 +194,25 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Method for doing signIn
+     * @param credential
+     */
+    private void signIn(PhoneAuthCredential credential){
+        //signin with credentials
+        FirebaseAuth mauth=FirebaseAuth.getInstance();
+        mauth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if(task.isSuccessful()){
+                    Log.d("LOGIN","SUCCESS");
+                }else{
+                    Log.d("LOGIN","FAILED");
+                }
+            }
+        });
+    }
+
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks generatePhoneAuthCallbak(){
         PhoneAuthProvider.OnVerificationStateChangedCallbacks callback=
                 new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
@@ -193,7 +220,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
                         //meaning code was sent and read succesfully
                         //automatically or manually
-                        //then go ahead and do a firbase signin
+                        //then go ahead and do a firebase signin
+                        signIn(phoneAuthCredential);
                     }
 
                     @Override
@@ -203,21 +231,124 @@ public class MainActivity extends AppCompatActivity {
                         if(e instanceof FirebaseAuthInvalidCredentialsException){
                             //display warnning message about bad phone number
                             //input
-
+                            AlertDialog dialog= PromptGenerator.generatePrompt(MainActivity.this,
+                                    MainActivity.this.getString(R.string.error_invalid_credentials),
+                                    MainActivity.this.getString(R.string.error_invalid_credentials_message),
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            //hide everything and redisplay the logging in GUI
+                                            MainActivity.this.showInputViewsAndHideLoading();
+                                        }
+                                    });
+                            dialog.show();
                         }else if(e instanceof FirebaseTooManyRequestsException){
                             //display error message that user exceeded limit
+                            AlertDialog dialog= PromptGenerator.generatePrompt(MainActivity.this,
+                                    MainActivity.this.getString(R.string.error_request_many),
+                                    MainActivity.this.getString(R.string.error_request_many_message),
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            MainActivity.this.showInputViewsAndHideLoading();
+                                        }
+                                    });
+                            dialog.show();
                         }else{
                             //display error message that something unknown went wrong
+                            AlertDialog dialog= PromptGenerator.generatePrompt(MainActivity.this,
+                                    MainActivity.this.getString(R.string.error_occured),
+                                    MainActivity.this.getString(R.string.error_occured_message),
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            MainActivity.this.showInputViewsAndHideLoading();
+                                        }
+                                    });
+                            dialog.show();
                         }
                     }
 
                     @Override
                     public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
-                        super.onCodeSent(s, forceResendingToken);
                         MainActivity.this.hideEverythingButShowSMSCode();
+
+                        //get code info once user clicks button
+                        MainActivity.this.startVerifyButtonSetup(s);
                     }
                 };
         return callback;
+    }
+
+    private void startVerifyButtonSetup(@NonNull final String verificationID){
+        verifyButtonSetup.setOnClickListerner(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Observable.just(1).
+                        filter(new Predicate<Integer>() {
+                            @Override
+                            public boolean test(Integer integer) throws Exception {
+                                return verifyButtonSetup.isStarted()==false;
+                            }
+                        }).
+                        map(new Function<Integer, Integer>() {
+                            @Override
+                            public Integer apply(Integer integer) throws Exception {
+                                verifyButtonSetup.startAction();
+                                return integer;
+                            }
+                        }).observeOn(Schedulers.io())
+                        .map(new Function<Integer, String>() {
+
+                            @Override
+                            public String apply(Integer integer) throws Exception {
+                                //get string from verification field
+                                String smsCode=MainActivity.this.smsCode.getText().toString();
+                                return smsCode;
+                            }
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .filter(new Predicate<String>() {
+                            @Override
+                            public boolean test(String s) throws Exception {
+                                //check if smscode has value or not
+                                if(s==null || s.trim().isEmpty()){
+                                    //meaning no value actualy passed
+                                    //popup a dialog box asking user to input a propper code
+                                    AlertDialog dialog=PromptGenerator.generatePromptTwoButtonActions(MainActivity.this,
+                                            MainActivity.this.getString(R.string.error_occured),
+                                            MainActivity.this.getString(R.string.error_no_valid_verifyNumber),
+                                            null, MainActivity.this.getString(R.string.ok),
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    //exit application
+                                                    MainActivity.this.finish();
+                                                }
+                                            },MainActivity.this.getString(R.string.exit));
+                                    dialog.show();
+                                    return false;
+                                }
+                                return true;
+                            }
+                        }).observeOn(Schedulers.io())
+                        .map(new Function<String, PhoneAuthCredential>() {
+                            @Override
+                            public PhoneAuthCredential apply(String verifyCode) throws Exception {
+                                PhoneAuthCredential credential=PhoneAuthProvider.getCredential(verificationID,verifyCode);
+                                return credential;
+                            }
+                        })
+                        .map(new Function<PhoneAuthCredential, Integer>() {
+                            @Override
+                            public Integer apply(PhoneAuthCredential credential) throws Exception {
+                                verifyButtonSetup.doneAction();
+                                return 0;
+                            }
+                        }).subscribeOn(AndroidSchedulers.mainThread())
+                        .subscribe();
+            }
+        });
     }
 
     private void setupSignInButtonActions(){

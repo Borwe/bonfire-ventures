@@ -10,8 +10,16 @@
 
     <!-- PROMPTS-->
     <string name="input_all_fields">Please input data in all fields</string>
-    <string name="error_occured">Error occurred</string>
+    <string name="error_occured">Error Occurred</string>
+    <string name="error_occured_message">Sorry, an unknown error occurred, please try again later</string>
+    <string name="error_invalid_credentials">Error Invalid Credentials</string>
+    <string name="error_invalid_credentials_message">Sorry, the credentials provided were not valid Please try again</string>
+    <string name="error_request_many">Error Too Many Request</string>
+    <string name="error_request_many_message">Sorry, too many request currently, wait a while and try again later</string>
+    <string name="error_no_valid_verifyNumber">Sorry, Please enter a verification or exit</string>
+
 
     <!-- UNIVERSAL -->
     <string name="ok">Okay</string>
+    <string name="exit">Exit</string>
 </resources>
