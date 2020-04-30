@@ -17,6 +17,7 @@
     <string name="error_request_many">Error Too Many Request</string>
     <string name="error_request_many_message">Sorry, too many request currently, wait a while and try again later</string>
     <string name="error_no_valid_verifyNumber">Sorry, Please enter a verification or exit</string>
+    <string name="error_invalid_verify_input">Sorry, It appears wrong verification code provided, or a network issue, please restart application and retry</string>
 
 
     <!-- UNIVERSAL -->

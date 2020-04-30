@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("LOGGED_IN:","NOPE");
             return false;
         }
+        Log.d("LOGGED_IN:","YES");
         return true;
     }
 
@@ -198,16 +199,32 @@ public class MainActivity extends AppCompatActivity {
      * Method for doing signIn
      * @param credential
      */
-    private void signIn(PhoneAuthCredential credential){
+    private synchronized void signIn(PhoneAuthCredential credential){
         //signin with credentials
         FirebaseAuth mauth=FirebaseAuth.getInstance();
+        if(MainActivity.this.checkIfUserSignedIn()==true){
+            //then means user already signed in
+            //so skip going ahead
+            return;
+        }
         mauth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
                     Log.d("LOGIN","SUCCESS");
                 }else{
-                    Log.d("LOGIN","FAILED");
+                    Log.e("LOGIN","FAILED");
+                    //show error message, with button that closes app
+                    AlertDialog dialog=PromptGenerator.generatePrompt(MainActivity.this,
+                            MainActivity.this.getString(R.string.error_occured),
+                            MainActivity.this.getString(R.string.error_invalid_verify_input),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    MainActivity.this.finish();
+                                }
+                            });
+                    dialog.show();
                 }
             }
         });
@@ -331,11 +348,20 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 return true;
                             }
-                        }).observeOn(Schedulers.io())
+                        }).observeOn(Schedulers.computation())
                         .map(new Function<String, PhoneAuthCredential>() {
                             @Override
                             public PhoneAuthCredential apply(String verifyCode) throws Exception {
+                                Log.d("VERIFYCODE:",verifyCode);
                                 PhoneAuthCredential credential=PhoneAuthProvider.getCredential(verificationID,verifyCode);
+                                return credential;
+                            }
+                        }).observeOn(AndroidSchedulers.mainThread())
+                        .map(new Function<PhoneAuthCredential, PhoneAuthCredential>() {
+                            @Override
+                            public PhoneAuthCredential apply(PhoneAuthCredential credential) throws Exception {
+                                //do sign in, and return credential after done
+                                signIn(credential);
                                 return credential;
                             }
                         })
