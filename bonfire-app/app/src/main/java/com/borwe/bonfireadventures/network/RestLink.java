@@ -16,9 +16,22 @@ public enum RestLink {
     public static String getHttpLink(RestLink link){
         StringBuffer stringBuffer=new StringBuffer();
         stringBuffer.append("http://");
-        stringBuffer.append(RestValues.IP.getValue());
-        stringBuffer.append("/");
+        appendLinkIFTestOrNot(stringBuffer);
         stringBuffer.append(link.getValue());
         return stringBuffer.toString();
+    }
+
+    /**
+     * Handles appending IP to be used by
+     * test or not
+     */
+    private static void appendLinkIFTestOrNot(StringBuffer buffer){
+        if(RestValues.is_test()){
+            //meaning use fake ip
+            buffer.append(RestValues.FAKE_IP.getValue());
+        }else{
+            //meaning not a test
+            buffer.append(RestValues.IP.getValue());
+        }
     }
 }
