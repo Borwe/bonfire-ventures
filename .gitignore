@@ -18,3 +18,4 @@
 
 #ignore gradle folder
 gradle/
+bin/
