@@ -421,6 +421,12 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("phone:",userDataProfile.getUser_phone());
                             return userDataProfile;
                         }
+                    }).filter(new Predicate<UserDataProfile>() {
+                        @Override
+                        public boolean test(UserDataProfile userDataProfile) throws Exception {
+                            //now check if user name is unique or not
+                            return false;
+                        }
                     }).map(new Function<UserDataProfile, UserDataProfile>() {
                         @Override
                         public UserDataProfile apply(UserDataProfile userDataProfile) throws Exception {
