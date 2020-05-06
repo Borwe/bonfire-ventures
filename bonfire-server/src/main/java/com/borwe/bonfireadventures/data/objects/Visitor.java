@@ -1,11 +1,10 @@
-package com.borwe.bonfireadventures.data;
+package com.borwe.bonfireadventures.data.objects;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import org.hibernate.annotations.Entity;
 
 import lombok.Data;
 
