@@ -6,21 +6,30 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
 @Entity
 public class Visitor{
     @Id()
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter @Setter
     private Long id;
 
-    @Column
+    @Getter @Setter
+    @Column(unique = true)
     private String name;
 
-    @Column
+    @Getter @Setter
+    @Column(unique = true)
     private String phone;
 
-    @Column
+    @Getter @Setter
+    @Column(unique = true)
     private String g_ig;
+    
+    //Make id -1, as invalid unsaved state
+    public Visitor() {
+    	this.id=-1L;
+    }
 }
