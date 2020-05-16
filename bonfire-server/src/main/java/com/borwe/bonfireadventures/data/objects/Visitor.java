@@ -17,15 +17,15 @@ public class Visitor{
     private Long id;
 
     @Getter @Setter
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String name;
 
     @Getter @Setter
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String phone;
 
     @Getter @Setter
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String g_ig;
     
     //Make id -1, as invalid unsaved state
