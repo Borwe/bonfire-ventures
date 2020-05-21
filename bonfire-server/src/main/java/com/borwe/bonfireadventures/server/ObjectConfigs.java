@@ -57,4 +57,14 @@ public class ObjectConfigs {
 		phoneFound.setSuccess(true);
 		return phoneFound;
 	}
+
+	@Bean(name = "invalid_input")
+	@Lazy
+	@Scope("singleton")
+	public BasicReply invalidInput(){
+		BasicReply invalidReply=new BasicReply();
+		invalidReply.setMessage("Sorry, no valid input provided");
+		invalidReply.setSuccess(false);
+		return invalidReply;
+	}
 }

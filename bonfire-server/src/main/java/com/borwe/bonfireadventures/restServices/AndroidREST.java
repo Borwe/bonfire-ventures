@@ -15,6 +15,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import reactor.core.publisher.Mono;
 
@@ -37,13 +40,24 @@ public class AndroidREST{
 	@Autowired
 	VisitorService visitorService;
     
-    @RequestMapping(value = "/hello", method = RequestMethod.GET)
-    public Mono<String> helloTest(){
-        return Mono.just("hello");
+    @RequestMapping(value = "/hello")
+    public Mono<String> helloTest(@RequestBody(required = false) String json){
+		if(json==null || json.trim().isEmpty()){
+			return ifNoValuePassed(json);
+		}
+
+        return Mono.just("hello"+json);
     }
     
     @RequestMapping(value = "/checkUserNameExists")
-    public Mono<String> checkUserNameExists(String json){
+    public Mono<String> checkUserNameExists(@RequestBody(required = false) String json){
+
+		if(json==null || json.trim().isEmpty()){
+			return ifNoValuePassed(json);
+		}
+
+		
+		//if json not empty
     	return Mono.just(json).map(js->{
     		//decode base 64
     		return base64Handler.decode(json);
@@ -108,4 +122,21 @@ public class AndroidREST{
     		return appContext.getBean("user_negative", BasicReply.class);
     	});
     }
+
+	//if json is null, then skip doing alot of shit, just return a failed basic Reply
+	private Mono<String> ifNoValuePassed(String json){
+
+		return Mono.just(appContext
+				.getBean("invalid_input",BasicReply.class))
+				.map(reply->{
+					try {
+						return jsonMapper.writeValueAsString(reply);
+					} catch (JsonProcessingException ex) {
+						return "";
+					}
+				}).map(jsn->{
+					//turn to base64
+					return base64Handler.encode(jsn);
+				});
+	}
 }
