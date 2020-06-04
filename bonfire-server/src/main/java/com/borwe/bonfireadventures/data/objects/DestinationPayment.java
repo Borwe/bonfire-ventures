@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,19 +19,25 @@ import lombok.Setter;
  * @author brian
  */
 @Entity
-public class DestType {
-	
-	@Getter @Setter
+public class DestinationPayment {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+	@Getter @Setter
+	private Long id;	
 
+	/**
+	 * For destination visiting
+	 */
+	@OneToOne
+	@Getter @Setter
+	private DestinationOfVisitor destVisitor;
+
+	/**
+	 * For checking if user has accepted, paid, and is waiting to go
+	 * or has already gone
+	 */
 	@Column
 	@Getter @Setter
-	private String type;
-
-	/* To hold image string */
-	@Column
-	@Getter @Setter
-	private String img;
+	private boolean  verified;
 }

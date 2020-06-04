@@ -19,6 +19,7 @@ import lombok.Setter;
 public class Location {
 	
 	@Id
+	@Getter @Setter
 	private Long id;
 
 	@Column @Getter @Setter
