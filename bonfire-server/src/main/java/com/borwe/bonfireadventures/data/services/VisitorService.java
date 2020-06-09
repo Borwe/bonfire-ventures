@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.borwe.bonfireadventures.data.objects.Visitor;
-import com.borwe.bonfireadventures.data.objects.VisitorRepository;
+import com.borwe.bonfireadventures.data.objects.Repositories.VisitorRepository;
 
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoSink;

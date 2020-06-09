@@ -1,5 +1,6 @@
-package com.borwe.bonfireadventures.data.objects;
+package com.borwe.bonfireadventures.data.objects.Repositories;
 
+import com.borwe.bonfireadventures.data.objects.Visitor;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
