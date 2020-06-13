@@ -4,7 +4,6 @@ import lombok.Setter;
 
 public class BasicReply implements Reply{
 	
-	@Setter
 	private String message;
 	
 	@Setter
@@ -20,4 +19,11 @@ public class BasicReply implements Reply{
 		return message;
 	}
 
+	public void setMessage(ReplyBaseEnum baseEnum){
+		this.message=baseEnum.getValue();
+	}
+	
+	public void setMessage(String message){
+		this.message=message;
+	}
 }

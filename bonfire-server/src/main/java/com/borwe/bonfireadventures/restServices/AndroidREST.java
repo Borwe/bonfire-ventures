@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.borwe.bonfireadventures.data.services.VisitorService;
 import com.borwe.bonfireadventures.replies.BasicReply;
+import com.borwe.bonfireadventures.server.ObjectConfigs;
 import com.borwe.bonfireadventures.server.networkObjs.Base64Handler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -48,6 +49,17 @@ public class AndroidREST{
 
         return Mono.just("hello"+json);
     }
+
+	@RequestMapping(value = "/topLists")
+	public Mono<String> getTopLists(@RequestBody(required = false) String json){
+		//if no value passed to us by user
+		if(json==null || json.trim().isEmpty()){
+			return ifNoValuePassed(json);
+		}
+
+		//if json was actually passed by the user then decode it
+		return Mono.just(json).map(js->base64Handler.decode(js));
+	}
     
     @RequestMapping(value = "/checkUserNameExists")
     public Mono<String> checkUserNameExists(@RequestBody(required = false) String json){
@@ -100,26 +112,28 @@ public class AndroidREST{
     		//if not return with user_positive, to prevent user from
     		//registering fake users
     		if(node==null || node.has("name")==false || node.has("phone")) {
-    			return appContext.getBean("user_positive", BasicReply.class);
+    			return appContext.getBean(ObjectConfigs.ObjectConfigsBeansNames.VISITOR_POSITIVE,
+						BasicReply.class);
     		}
     		
     		//if "user_name", check that such a user exists with given name
     		String name=node.findValue("name").asText();
     		if(visitorService.checkIfVisitorExistByName(name).block()) {
     			//true, meaning user name already taken
-    			return appContext.getBean("user_positive", BasicReply.class);
+    			return appContext.getBean(ObjectConfigs.ObjectConfigsBeansNames.VISITOR_POSITIVE,
+						BasicReply.class);
     		}
     		
     		//if "user_phone", check that such a user exists, if so return user_positive_phone
     		String phone=node.findValue("phone").asText();
     		if(visitorService.checkIfVisitorExistsByPhone(phone).block()) {
     			//true meaning such a user exists, so return a user_positive_phone
-    			return appContext.getBean("user_positive_phone", BasicReply.class);
+    			return appContext.getBean(ObjectConfigs.ObjectConfigsBeansNames.VISITOR_POSITIVE_PHONE, BasicReply.class);
     		}
     		
     		//otherwise no such user, or phone number exists, so return a
     		//user_negative BasicReply
-    		return appContext.getBean("user_negative", BasicReply.class);
+    		return appContext.getBean(ObjectConfigs.ObjectConfigsBeansNames.VISITOR_NEGATIVE, BasicReply.class);
     	});
     }
 
@@ -127,7 +141,7 @@ public class AndroidREST{
 	private Mono<String> ifNoValuePassed(String json){
 
 		return Mono.just(appContext
-				.getBean("invalid_input",BasicReply.class))
+				.getBean(ObjectConfigs.ObjectConfigsBeansNames.INVALID_INPUT,BasicReply.class))
 				.map(reply->{
 					try {
 						return jsonMapper.writeValueAsString(reply);
