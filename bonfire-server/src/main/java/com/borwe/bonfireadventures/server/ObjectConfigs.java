@@ -21,6 +21,7 @@ public class ObjectConfigs {
 		public static final String VISITOR_POSITIVE="visitor_positive";
 		public static final String VISITOR_POSITIVE_PHONE="visitor_positive_phone"; 
 		public static final String INVALID_INPUT="invalid_input";
+		public static final String VISITOR_UNAUTH="invalid_authorization";
 	}
 
 	@Bean
@@ -56,13 +57,23 @@ public class ObjectConfigs {
 		userFound.setSuccess(true);
 		return userFound;
 	}
+
+	@Bean(name = ObjectConfigsBeansNames.VISITOR_UNAUTH)
+	@Lazy
+	@Scope("singleton")
+	public BasicReply noUserDataGiven(){
+		BasicReply noUserData=new BasicReply();
+		noUserData.setMessage(Reply.VisitorStrings.VISITOR_DATA_UNAUTHORIZED);
+		noUserData.setSuccess(true);
+		return noUserData;
+	}
 	
 	@Bean(name = ObjectConfigsBeansNames.VISITOR_POSITIVE_PHONE)
 	@Lazy
 	@Scope("singleton")
 	public BasicReply userPhoneFoundPositive() {
 		BasicReply phoneFound=new BasicReply();
-		phoneFound.setMessage(Reply.VisitorStrings.SIMIMAL_PHONE_NUMBER_FOUND);
+		phoneFound.setMessage(Reply.VisitorStrings.VISITOR_PHONE_NUMBER_FOUND);
 		phoneFound.setSuccess(true);
 		return phoneFound;
 	}

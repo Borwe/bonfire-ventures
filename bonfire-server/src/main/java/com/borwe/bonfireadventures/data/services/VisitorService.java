@@ -40,7 +40,6 @@ public class VisitorService {
 
 			@Override
 			public void accept(MonoSink<Long> sink) {
-				// TODO Auto-generated method stub
 				sink.success(visitorRepository.count());
 			}
 		});

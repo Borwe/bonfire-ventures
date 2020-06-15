@@ -78,10 +78,8 @@ public class AndroidREST{
     		try {
 				return jsonMapper.readTree(decodedJson);
 			} catch (JsonMappingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
     		return null;
@@ -94,10 +92,8 @@ public class AndroidREST{
 				String basicReplyString = appContext.getBean(ObjectMapper.class).writeValueAsString(basicReply);
 				return appContext.getBean(Base64Handler.class).encode(basicReplyString);
 			} catch (BeansException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			//if we reach here means error occured
@@ -111,8 +107,8 @@ public class AndroidREST{
     		//check if user_name, or user_phone field exists
     		//if not return with user_positive, to prevent user from
     		//registering fake users
-    		if(node==null || node.has("name")==false || node.has("phone")) {
-    			return appContext.getBean(ObjectConfigs.ObjectConfigsBeansNames.VISITOR_POSITIVE,
+    		if(node==null || node.has("name")==false || node.has("phone")==false) {
+    			return appContext.getBean(ObjectConfigs.ObjectConfigsBeansNames.VISITOR_UNAUTH,
 						BasicReply.class);
     		}
     		
