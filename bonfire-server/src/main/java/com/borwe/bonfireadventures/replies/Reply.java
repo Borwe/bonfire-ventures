@@ -5,7 +5,9 @@ import lombok.Getter;
 public interface Reply {
 
 	public boolean getSuccess();
+	public boolean matches(Reply reply);
 	public String getMessage();
+	public String encode();
 
 	public enum BasicStrings implements ReplyBaseEnum{
 		INVALID_INPUT("Sorry no valid input provided");

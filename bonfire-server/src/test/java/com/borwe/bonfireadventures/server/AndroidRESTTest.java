@@ -72,7 +72,6 @@ public class AndroidRESTTest {
 				throwable.printStackTrace();
 			});
 		} catch (JsonProcessingException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
