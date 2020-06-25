@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import reactor.core.publisher.Mono;
 
-@RestController()
+@RestController
+@RequestMapping("android")
 public class AndroidREST{
 	
 	//used for decoding and encoding

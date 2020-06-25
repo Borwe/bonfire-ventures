@@ -1,5 +1,6 @@
 package com.borwe.bonfireadventures.server;
 
+import com.borwe.bonfireadventures.data.objects.Visitor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ public class ObjectConfigs {
 		public static final String INVALID_INPUT="invalid_input";
 		public static final String VISITOR_UNAUTH="invalid_authorization";
 		public static final String ERROR_VISITOR_VERIFICATION="error_visitor_not_verified";
+		public static final String VISITOR_PLACE_HOLDER="just_a_place_holder";
 	}
 
 	@Bean
@@ -37,6 +39,14 @@ public class ObjectConfigs {
 	@Scope("singleton")
 	public ObjectMapper jsonObjMapper() {
 		return new ObjectMapper();
+	}
+
+	@Bean(name = ObjectConfigsBeansNames.VISITOR_PLACE_HOLDER)
+	@Lazy
+	@Scope("singleton")
+	public Visitor placeHolderVisotor(){
+		Visitor visitor=new Visitor();
+		return visitor;
 	}
 	
 	@Bean(name = ObjectConfigsBeansNames.VISITOR_NEGATIVE)

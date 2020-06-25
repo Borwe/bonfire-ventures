@@ -3,7 +3,6 @@ package com.borwe.bonfireadventures.data.services;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
-import java.util.function.LongConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +11,11 @@ import org.springframework.stereotype.Service;
 
 import com.borwe.bonfireadventures.data.objects.Visitor;
 import com.borwe.bonfireadventures.data.objects.Repositories.VisitorRepository;
+import com.borwe.bonfireadventures.server.ObjectConfigs;
+import com.borwe.bonfireadventures.server.networkObjs.Base64Handler;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationContext;
 
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoSink;
@@ -22,9 +26,19 @@ public class VisitorService {
 	
 	@Autowired
 	private VisitorRepository visitorRepository;
+
+	@Autowired
+	private Base64Handler base64Modem;
+
+	@Autowired
+	private ObjectMapper jsonMapper;
+
+	@Autowired
+	private ApplicationContext appContext;
 	
 	private ThreadLocalRandom random=ThreadLocalRandom.current();
 	
+	//For testing purposes only
 	public Visitor fillWithRandomValues(Visitor visitor) {
 		var number=Long.toString(random.nextLong(1111111111L, 9999999999L));
 		var name=new StringBuffer().append("abc").append(number).toString();
@@ -33,6 +47,45 @@ public class VisitorService {
 		visitor.setPhone(number);
 		visitor.setG_ig(name);
 		return visitor;
+	}
+
+	public Mono<Visitor> generateFakeVisitor(){
+		return Mono
+				.just(appContext
+						.getBean(ObjectConfigs
+								.ObjectConfigsBeansNames.VISITOR_PLACE_HOLDER,
+								Visitor.class));
+	}
+
+	public Mono<Visitor> getVisitorFromEncodedJson(String json){
+		return Mono.just(json).map(js->{
+			//decode
+			return base64Modem.decode(json);
+		}).map(decodedJson->{
+			JsonNode node=jsonMapper.createObjectNode();
+					
+			try {
+				node=jsonMapper.readTree(decodedJson);
+			}finally{
+				return node;
+			}
+		}).map(jsonNode->{
+			JsonNode node=jsonNode;
+			//now find user by name and or phone data passed
+			String name=node.get("name").asText();
+			String phone=node.get("phone").asText();
+
+			return visitorRepository.findByNameAndPhone(name, phone);
+		}).filter(optionalVisitor->{
+			//return true if visitor not blank false otherwise
+			if(optionalVisitor.isEmpty()){
+				return false;
+			}
+			return true;
+		}).map(optionalVisitor->{
+			//we reach here if the user actually exists
+			return optionalVisitor.get();
+		});
 	}
 	
 	public Mono<Long> getTotalNumberOfVisitors(){
