@@ -74,6 +74,7 @@ public class AndroidREST{
 										.ERROR_VISITOR_VERIFICATION))
 									.flatMap(reply->encodeReply((Reply)reply));
 						}else{
+                            //we reach here if the user is verified, and actually exists
 							return Mono.just("");
 						}
 					});

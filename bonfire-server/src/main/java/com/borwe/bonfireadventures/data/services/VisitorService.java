@@ -57,6 +57,10 @@ public class VisitorService {
 								Visitor.class));
 	}
 
+    public Mono<Visitor> generateVisitorWithRandomValues(){
+        return generateFakeVisitor().map(visitor->fillWithRandomValues(visitor));
+    }
+
 	public Mono<Visitor> getVisitorFromEncodedJson(String json){
 		return Mono.just(json).map(js->{
 			//decode

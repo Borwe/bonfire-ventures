@@ -36,7 +36,7 @@ public class AndroidRESTTest {
 	@Test
 	public void checkUserTest() {
 		//start by checking if a random user exists, it should fail
-		Visitor randomVis=visitorService.fillWithRandomValues(appContext.getBean("genVisitor", Visitor.class));
+		Visitor randomVis=visitorService.generateVisitorWithRandomValues().block();
 		assertNotNull(randomVis);
 		
 		//encode randomVis to base64
