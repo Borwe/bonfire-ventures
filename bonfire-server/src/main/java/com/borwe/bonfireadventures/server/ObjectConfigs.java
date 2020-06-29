@@ -25,6 +25,7 @@ public class ObjectConfigs {
 		public static final String VISITOR_UNAUTH="invalid_authorization";
 		public static final String ERROR_VISITOR_VERIFICATION="error_visitor_not_verified";
 		public static final String VISITOR_PLACE_HOLDER="just_a_place_holder";
+		public static final String BASIC_REPLY_POSITIVE="just_a_normal_reply";
 	}
 
 	@Bean
@@ -47,6 +48,15 @@ public class ObjectConfigs {
 	public Visitor placeHolderVisotor(){
 		Visitor visitor=new Visitor();
 		return visitor;
+	}
+
+	@Bean(name = ObjectConfigsBeansNames.BASIC_REPLY_POSITIVE)
+	@Lazy
+	@Scope("prototype")
+	public BasicReply positiveReply(){
+		BasicReply reply=new BasicReply();
+		reply.setSuccess(true);
+		return reply;
 	}
 	
 	@Bean(name = ObjectConfigsBeansNames.VISITOR_NEGATIVE)

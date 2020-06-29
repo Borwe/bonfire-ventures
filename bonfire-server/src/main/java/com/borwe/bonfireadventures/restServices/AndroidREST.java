@@ -3,7 +3,6 @@ package com.borwe.bonfireadventures.restServices;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.codec.EncoderHttpMessageWriter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -90,7 +88,13 @@ public class AndroidREST{
 									.flatMap(reply->encodeReply((Reply)reply));
 						}else{
                             //we reach here if the user is verified, and actually exists
-							return generateAVisitorsTopList(json);
+							return generateAVisitorsTopList(json).map(message->{
+								BasicReply reply=appContext.getBean(ObjectConfigs.
+										ObjectConfigsBeansNames.BASIC_REPLY_POSITIVE,
+											BasicReply.class);
+								reply.setMessage(message);
+								return reply;
+							}).flatMap(reply->encodeReply(reply));
 						}
 					});
 				});
@@ -217,7 +221,7 @@ public class AndroidREST{
         }).map(node->{
             // now turn the node into a string
             return node.toString();
-        }).map(stringNode->base64Handler.encode(stringNode));
+        });
     }
 
 	private Mono<Boolean> verifyVisitorLegit(JsonNode visitorNode){
