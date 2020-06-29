@@ -10,7 +10,10 @@ public interface Reply {
 	public String encode();
 
 	public enum BasicStrings implements ReplyBaseEnum{
-		INVALID_INPUT("Sorry no valid input provided");
+		INVALID_INPUT("Sorry no valid input provided"),
+        TOP_BOOKINGS("top_bookings"),
+        TOP_DESTINATIONS("top_destinations"),
+        PREVIOUS_BOOKINGS("prev_bookings");
 		
 		@Getter
 		private final String value;

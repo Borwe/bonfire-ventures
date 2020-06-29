@@ -3,9 +3,13 @@ package com.borwe.bonfireadventures.restServices;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.codec.EncoderHttpMessageWriter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.borwe.bonfireadventures.data.objects.Visitor;
+import com.borwe.bonfireadventures.data.services.BookingService;
+import com.borwe.bonfireadventures.data.services.DestinationService;
 import com.borwe.bonfireadventures.data.services.VisitorService;
 import com.borwe.bonfireadventures.replies.BasicReply;
 import com.borwe.bonfireadventures.replies.Reply;
@@ -15,6 +19,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.springframework.web.bind.annotation.RequestBody;
 
 import reactor.core.publisher.Mono;
@@ -38,6 +45,14 @@ public class AndroidREST{
 	//for handling visitors
 	@Autowired
 	VisitorService visitorService;
+
+    //for handling bookings
+    @Autowired
+    BookingService bookingService;
+
+    //for handling destinations
+    @Autowired
+    DestinationService destinationService;
     
     @RequestMapping(value = "/hello")
     public Mono<String> helloTest(@RequestBody(required = false) String json){
@@ -75,7 +90,7 @@ public class AndroidREST{
 									.flatMap(reply->encodeReply((Reply)reply));
 						}else{
                             //we reach here if the user is verified, and actually exists
-							return Mono.just("");
+							return generateAVisitorsTopList(json);
 						}
 					});
 				});
@@ -121,6 +136,88 @@ public class AndroidREST{
 			//so return a BasicReply of true to avoid user keep registering
 			return "";
     	});
+    }
+
+    private Mono<String> generateAVisitorsTopList(String json){
+        Mono<Visitor> monoVisitor=visitorService
+            .getVisitorFromEncodedJson(json);
+        
+
+        var visitorBookings=monoVisitor.flatMapMany(visitor->{
+            return bookingService.getBookingsByVisitor(visitor);
+        });
+
+        var allBookingsInDescendingOrder=bookingService.getTopAllBookingsAnonymouslyOrderedByCostDescending();
+
+        var top5Destinations=destinationService.getTop5Destinations();
+
+        return Mono.just(jsonMapper.createObjectNode()).flatMap(node->{
+
+            //add visitors bookings to value "prev_bookings" in json node
+            return visitorBookings.map(booking->{
+                JsonNode jNodeBooking=jsonMapper.createObjectNode();
+                try{
+                    jNodeBooking=jsonMapper.readTree(jsonMapper.writeValueAsString(booking));
+                }finally{
+                    return jNodeBooking;
+                }
+            }).collectList().map(listOfBookingNodes->{
+                // parse each Jnode and put it in an ArrayNode, which lastly store in the main node
+                // for returning
+                ArrayNode arrayNodeOfBookings=jsonMapper.createArrayNode();
+                listOfBookingNodes.forEach(bookNode->{
+                    arrayNodeOfBookings.add(bookNode);
+                });
+
+                //now add it all into the node
+                node.set(Reply.BasicStrings.PREVIOUS_BOOKINGS.getValue(),arrayNodeOfBookings);
+                return node;
+            });
+        }).flatMap(node->{
+            return allBookingsInDescendingOrder.map(booking->{
+                JsonNode jNodeBooking=jsonMapper.createObjectNode();
+                try{
+                    jNodeBooking= jsonMapper.readTree(jsonMapper.writeValueAsString(booking));
+                }finally{
+                    return jNodeBooking;
+                }
+            }).collectList().map(listOfBookingNodes->{
+                // parse each Jnode and put it in an ArrayNode, which lastly store in the main node
+                // for returning
+                ArrayNode arrayNodeOfBookings=jsonMapper.createArrayNode();
+                listOfBookingNodes.forEach(bookNode->{
+                    arrayNodeOfBookings.add(bookNode);
+                });
+
+                //now add it all into the node
+                node.set(Reply.BasicStrings.TOP_BOOKINGS.getValue(),arrayNodeOfBookings);
+                return node;
+
+            });
+        }).flatMap(node->{
+            return top5Destinations.map(destination->{
+                JsonNode jNodeDestination=jsonMapper.createObjectNode();
+                try{
+                    jNodeDestination= jsonMapper.readTree(jsonMapper.writeValueAsString(destination));
+                }finally{
+                    return jNodeDestination;
+                }
+            }).collectList().map(listOfDestinations->{
+                // parse each Jnode and put it in an ArrayNode, which lastly store in the main node
+                // for returning
+                ArrayNode arrayNodeOfDestinations=jsonMapper.createArrayNode();
+                listOfDestinations.forEach(destinationNode->{
+                    arrayNodeOfDestinations.add(destinationNode);
+                });
+
+                //now add it all into the node
+                node.set(Reply.BasicStrings.TOP_DESTINATIONS.getValue(),arrayNodeOfDestinations);
+                return node;
+            });
+        }).map(node->{
+            // now turn the node into a string
+            return node.toString();
+        }).map(stringNode->base64Handler.encode(stringNode));
     }
 
 	private Mono<Boolean> verifyVisitorLegit(JsonNode visitorNode){

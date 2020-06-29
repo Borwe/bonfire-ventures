@@ -21,7 +21,7 @@ public class BookingService {
 	@Autowired
 	VisitorService visitorService;
 
-	public Flux<Booking> getBookingsByVisitorId(Visitor visitor){
+	public Flux<Booking> getBookingsByVisitor(Visitor visitor){
 		return Flux.just(visitor).flatMap(vis->{
 			return Flux.fromIterable(bookingRepository.findByVisitor(vis));
 		});

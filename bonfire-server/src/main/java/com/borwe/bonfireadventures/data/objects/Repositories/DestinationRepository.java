@@ -5,6 +5,8 @@
  */
 package com.borwe.bonfireadventures.data.objects.Repositories;
 
+import java.util.List;
+
 import com.borwe.bonfireadventures.data.objects.Destination;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,5 +15,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author brian
  */
 public interface DestinationRepository extends JpaRepository<Destination, Long>{
-	
+    public List<Destination> findTop5ByOrderByVists();
 }
