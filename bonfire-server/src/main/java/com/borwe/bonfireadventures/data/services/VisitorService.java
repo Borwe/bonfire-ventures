@@ -126,6 +126,20 @@ public class VisitorService {
 			return true;
 		});
 	}
+
+	public Mono<Boolean> removeVisitorFromDB(Visitor visitor){
+		return checkIfVisitorExistsWithID(visitor).flatMap(exists->{
+			if(exists==false){
+				// since user already doesn't exists, so just return true
+				return Mono.just(true);
+			}else{
+				//if we reach here means we have to remove the user
+				visitorRepository.deleteById(visitor.getId());
+				//do a recursive call here
+				return removeVisitorFromDB(visitor);
+			}
+		});
+	}
 	
 	public Mono<Boolean> checkIfVisitorExistsWithID(Visitor visitor){
 		return Mono.just(visitor).map((vis)->{

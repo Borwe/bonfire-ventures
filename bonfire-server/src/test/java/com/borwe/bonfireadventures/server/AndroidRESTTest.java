@@ -17,6 +17,7 @@ import com.borwe.bonfireadventures.server.networkObjs.Base64Handler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 
 @SpringBootTest
 public class AndroidRESTTest {
@@ -29,6 +30,9 @@ public class AndroidRESTTest {
 	
 	@Autowired
 	VisitorService visitorService;
+
+	@Autowired
+	VisitorFactoryForTestsHandler visitorFactoryForTestsHandler;
 	
 	//logger
 	Logger logger=LoggerFactory.getLogger(AndroidRESTTest.class);
@@ -125,5 +129,29 @@ public class AndroidRESTTest {
 		visitorService.deleteVisitor(savedVisitor).block();
 		//make sure db was actually cleared
 		assertTrue(countVisitorsSaved==visitorService.getTotalNumberOfVisitors().block());
+	}
+
+	@Test
+	public void checkOnTopListFunctionality(){
+
+	}
+
+	@Test
+	public void checkVisitorCreationDeletionAKALoginEmulation(){
+		//create the user
+		Optional<Boolean> successOption=visitorFactoryForTestsHandler.
+				generateAUserForLoggingIn().map(visitor->{
+			assertTrue(visitor.getId()>=0);
+			return visitor;
+		}).flatMap(visitor->{
+			//now logout the visitor
+			return visitorFactoryForTestsHandler.logOutVisitorAndDelete(visitor);
+		}).map(success->{
+			assertTrue(success);
+			return success;
+		}).blockOptional();
+
+		assertTrue(successOption.isPresent());
+		assertTrue(successOption.get());
 	}
 }
